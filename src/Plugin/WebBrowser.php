@@ -1,21 +1,28 @@
 <?php
+namespace PhpQuery\Plugin;
+
+use PhpQuery\PhpQuery;
 /**
  * WebBrowser plugin.
  *
  */
-class \PhpQuery\Plugin\WebBrowser {
+class WebBrowser {
 	/**
 	 * Limit binded methods to specified ones.
 	 *
 	 * @var array
 	 */
-	public static $phpQueryMethods = null;
-	/**
-	 * Enter description here...
-	 *
-	 * @param PhpQueryObject $self
-	 * @todo support 'reset' event
-	 */
+	public static $PhpQueryMethods = null;
+
+    /**
+     * Enter description here...
+     *
+     * @param \PhpQuery\PhpQueryObject $self
+     * @param null                     $callback
+     * @param null                     $location
+     * @throws \Exception
+     * @todo support 'reset' event
+     */
 	public static function WebBrowser($self, $callback = null, $location = null) {
 		$self = $self->_clone()->toRoot();
 		$location = $location
@@ -52,32 +59,33 @@ class \PhpQuery\Plugin\WebBrowser {
 			}
 			//print $url;
 			$path = rtrim($dir, '/').'/'.$filename;
-			phpQuery::debug("Requesting download of $url\n");
+			PhpQuery::debug("Requesting download of $url\n");
 			// TODO use AJAX instead of file_get_contents
 			file_put_contents($path, file_get_contents($url));
 		}
 		return $self;
 	}
-	/**
-	 * Method changing browser location.
-	 * Fires callback registered with WebBrowser(), if any.
-	 * @param $self
-	 * @param $url
-	 * @return unknown_type
-	 */
+
+    /**
+     * Method changing browser location.
+     * Fires callback registered with WebBrowser(), if any.
+     * @param $self
+     * @param $url
+     * @return bool
+     */
 	public static function location($self, $url = null) {
 		// TODO if ! $url return actual location ???
 		$xhr = isset($self->document->xhr)
 			? $self->document->xhr
 			: null;
-		$xhr = phpQuery::ajax(array(
+		$xhr = PhpQuery::ajax(array(
 			'url' => $url,
 		), $xhr);
 		$return = false;
 		if ($xhr->getLastResponse()->isSuccessful()) {
 			$return = \PhpQuery\Plugin\UtilWebBrowser::browserReceive($xhr);
 			if (isset($self->document->WebBrowserCallback))
-				phpQuery::callbackRun(
+				PhpQuery::callbackRun(
 					$self->document->WebBrowserCallback,
 					array($return)
 				);
@@ -90,14 +98,14 @@ class \PhpQuery\Plugin\WebBrowser {
             $xhr = isset($self->document->xhr)
 			? $self->document->xhr
 			: null;
-		$xhr = phpQuery::ajax(array(
+		$xhr = PhpQuery::ajax(array(
 			'url' => $url,
 		), $xhr);
 		$return = false;
 		if ($xhr->getLastResponse()->isSuccessful()) {
 			$return = \PhpQuery\Plugin\UtilWebBrowser::browserDownload($xhr);
 			if (isset($self->document->WebBrowserCallback))
-				phpQuery::callbackRun(
+				PhpQuery::callbackRun(
 					$self->document->WebBrowserCallback,
 					array($return)
 				);
@@ -105,21 +113,22 @@ class \PhpQuery\Plugin\WebBrowser {
 		return $return;
         }
 }
-class \PhpQuery\Plugin\UtilWebBrowser {
-	/**
-	 *
-	 * @param $url
-	 * @param $callback
-	 * @param $param1
-	 * @param $param2
-	 * @param $param3
-	 * @return Zend_Http_Client
-	 */
+class UtilWebBrowser {
+    /**
+     *
+     * @param $url
+     * @param $callback
+     * @param $param1
+     * @param $param2
+     * @param $param3
+     * @throws \Exception
+     * @return \Zend_Http_Client
+     */
 	public static function browserGet($url, $callback,
 		$param1 = null, $param2 = null, $param3 = null) {
-		phpQuery::debug("[WebBrowser] GET: $url");
+		PhpQuery::debug("[WebBrowser] GET: $url");
 		self::authorizeHost($url);
-		$xhr = phpQuery::ajax(array(
+		$xhr = PhpQuery::ajax(array(
 			'type' => 'GET',
 			'url' => $url,
 			'dataType' => 'html',
@@ -130,17 +139,16 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 			$paramStructure = array_slice($paramStructure, 2);
 		}
 		if ($xhr->getLastResponse()->isSuccessful()) {
-			phpQuery::callbackRun($callback,
+			PhpQuery::callbackRun($callback,
 				array(self::browserReceive($xhr)->WebBrowser()),
 				$paramStructure
 			);
-//			phpQuery::callbackRun($callback, array(
+//			PhpQuery::callbackRun($callback, array(
 //				self::browserReceive($xhr)//->WebBrowser($callback)
 //			));
 			return $xhr;
 		} else {
 			throw new \Exception("[WebBrowser] GET request failed; url: $url");
-			return false;
 		}
 	}
 	/**
@@ -151,12 +159,12 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 	 * @param $param1
 	 * @param $param2
 	 * @param $param3
-	 * @return Zend_Http_Client
+	 * @return \Zend_Http_Client
 	 */
 	public static function browserPost($url, $data, $callback,
 		$param1 = null, $param2 = null, $param3 = null) {
 		self::authorizeHost($url);
-		$xhr = phpQuery::ajax(array(
+		$xhr = PhpQuery::ajax(array(
 			'type' => 'POST',
 			'url' => $url,
 			'dataType' => 'html',
@@ -168,11 +176,11 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 			$paramStructure = array_slice($paramStructure, 3);
 		}
 		if ($xhr->getLastResponse()->isSuccessful()) {
-			phpQuery::callbackRun($callback,
+			PhpQuery::callbackRun($callback,
 				array(self::browserReceive($xhr)->WebBrowser()),
 				$paramStructure
 			);
-//			phpQuery::callbackRun($callback, array(
+//			PhpQuery::callbackRun($callback, array(
 //				self::browserReceive($xhr)//->WebBrowser($callback)
 //			));
 			return $xhr;
@@ -191,7 +199,7 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 	public static function browser($ajaxSettings, $callback,
 		$param1 = null, $param2 = null, $param3 = null) {
 		self::authorizeHost($ajaxSettings['url']);
-		$xhr = phpQuery::ajax(
+		$xhr = PhpQuery::ajax(
 			self::ajaxSettingsPrepare($ajaxSettings)
 		);
 		$paramStructure = null;
@@ -200,11 +208,11 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 			$paramStructure = array_slice($paramStructure, 2);
 		}
 		if ($xhr->getLastResponse()->isSuccessful()) {
-			phpQuery::callbackRun($callback,
+			PhpQuery::callbackRun($callback,
 				array(self::browserReceive($xhr)->WebBrowser()),
 				$paramStructure
 			);
-//			phpQuery::callbackRun($callback, array(
+//			PhpQuery::callbackRun($callback, array(
 //				self::browserReceive($xhr)//->WebBrowser($callback)
 //			));
 			return $xhr;
@@ -214,7 +222,7 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 	protected static function authorizeHost($url) {
 		$host = parse_url($url, PHP_URL_HOST);
 		if ($host)
-			phpQuery::ajaxAllowHost($host);
+			PhpQuery::ajaxAllowHost($host);
 	}
 	protected static function ajaxSettingsPrepare($settings) {
 		unset($settings['success']);
@@ -222,10 +230,10 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 		return $settings;
 	}
 	/**
-	 * @param Zend_Http_Client $xhr
+	 * @param \Zend_Http_Client $xhr
 	 */
 	public static function browserReceive($xhr) {
-		phpQuery::debug("[WebBrowser] Received from ".$xhr->getUri(true));
+		PhpQuery::debug("[WebBrowser] Received from ".$xhr->getUri(true));
 		// TODO handle meta redirects
 		$body = $xhr->getLastResponse()->getBody();
 
@@ -235,7 +243,7 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 				.str_replace('<!doctype html>', '', $body)
 				.'</html>';
 		}
-		$pq = phpQuery::newDocument($body);
+		$pq = PhpQuery::newDocument($body);
 		$pq->document->xhr = $xhr;
 		$pq->document->location = $xhr->getUri(true);
 		$refresh = $pq->find('meta[http-equiv=refresh]')
@@ -243,16 +251,16 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 		if ($refresh->size()) {
 //			print htmlspecialchars(var_export($xhr->getCookieJar()->getAllCookies(), true));
 //			print htmlspecialchars(var_export($xhr->getLastResponse()->getHeader('Set-Cookie'), true));
-			phpQuery::debug("Meta redirect... '{$refresh->attr('content')}'\n");
+			PhpQuery::debug("Meta redirect... '{$refresh->attr('content')}'\n");
 			// there is a refresh, so get the new url
 			$content = $refresh->attr('content');
 			$urlRefresh = substr($content, strpos($content, '=')+1);
 			$urlRefresh = trim($urlRefresh, '\'"');
 			// XXX not secure ?!
-			phpQuery::ajaxAllowURL($urlRefresh);
+			PhpQuery::ajaxAllowURL($urlRefresh);
 //			$urlRefresh = urldecode($urlRefresh);
 			// make ajax call, passing last $xhr object to preserve important stuff
-			$xhr = phpQuery::ajax(array(
+			$xhr = PhpQuery::ajax(array(
 				'type' => 'GET',
 				'url' => $urlRefresh,
 				'dataType' => 'html',
@@ -271,47 +279,48 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 	 * @param Zend_Http_Client $xhr
 	 */
 	public static function browserDownload($xhr) {
-		phpQuery::debug("[WebBrowser] Received from ".$xhr->getUri(true));
+		PhpQuery::debug("[WebBrowser] Received from ".$xhr->getUri(true));
 		// TODO handle meta redirects
 		$body = $xhr->getLastResponse()->getBody();
 
 		return $body;
 	}
-	/**
-	 * 
-	 * @param $e
-	 * @param $callback
-	 * @return unknown_type
-	 */
-	public static function hadleClick($e, $callback = null) {
-		$node = phpQuery::pq($e->target);
+
+    /**
+     * @param      $e
+     * @param null $callback
+     */
+    public static function hadleClick($e, $callback = null) {
+		$node = PhpQuery::pq($e->target);
 		$type = null;
 		if ($node->is('a[href]')) {
 			// TODO document.location
 			$xhr = isset($node->document->xhr)
 				? $node->document->xhr
 				: null;
-			$xhr = phpQuery::ajax(array(
+			$xhr = PhpQuery::ajax(array(
 				'url' => resolve_url($e->data[0], $node->attr('href')),
 				'referer' => $node->document->location,
 			), $xhr);
-			if ((! $callback || !($callback instanceof Callback)) && $e->data[1])
+			if ((! $callback || !($callback instanceof \Callback)) && $e->data[1])
 				$callback = $e->data[1];
 			if ($xhr->getLastResponse()->isSuccessful() && $callback)
-				phpQuery::callbackRun($callback, array(
+				PhpQuery::callbackRun($callback, array(
 					self::browserReceive($xhr)
 				));
 		} else if ($node->is(':submit') && $node->parents('form')->size())
 			$node->parents('form')->trigger('submit', array($e));
 	}
-	/**
-	 * Enter description here...
-	 *
-	 * @param unknown_type $e
-	 * @TODO trigger submit for form after form's  submit button has a click event
-	 */
+
+    /**
+     * Enter description here...
+     *
+     * @TODO trigger submit for form after form's  submit button has a click event
+     * @param      $e
+     * @param null $callback
+     */
 	public static function handleSubmit($e, $callback = null) {
-		$node = phpQuery::pq($e->target);
+		$node = PhpQuery::pq($e->target);
 		if (!$node->is('form') || !$node->is('[action]'))
 			return;
 		// TODO document.location
@@ -339,19 +348,17 @@ class \PhpQuery\Plugin\UtilWebBrowser {
 		);
 		if ($node->attr('enctype'))
 			$options['contentType'] = $node->attr('enctype');
-		$xhr = phpQuery::ajax($options, $xhr);
+		$xhr = PhpQuery::ajax($options, $xhr);
 		if ((! $callback || !($callback instanceof Callback)) && $e->data[1])
 			$callback = $e->data[1];
 		if ($xhr->getLastResponse()->isSuccessful() && $callback)
-			phpQuery::callbackRun($callback, array(
+			PhpQuery::callbackRun($callback, array(
 				self::browserReceive($xhr)
 			));
 	}
 }
 /**
  *
- * @param unknown_type $parsed
- * @return unknown
  * @link http://www.php.net/manual/en/function.parse-url.php
  * @author stevenlewis at hotmail dot com
  */
@@ -373,9 +380,6 @@ function glue_url($parsed)
 /**
  * Enter description here...
  *
- * @param unknown_type $base
- * @param unknown_type $url
- * @return unknown
  * @author adrian-php at sixfingeredman dot net
  */
 function resolve_url($base, $url) {
@@ -433,4 +437,17 @@ function resolve_url($base, $url) {
         }
         // Step 7
         return glue_url($base);
+}
+
+function unparse_url($parsed_url) {
+    $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
+    $host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+    $port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+    $user     = isset($parsed_url['user']) ? $parsed_url['user'] : '';
+    $pass     = isset($parsed_url['pass']) ? ':' . $parsed_url['pass']  : '';
+    $pass     = ($user || $pass) ? "$pass@" : '';
+    $path     = isset($parsed_url['path']) ? $parsed_url['path'] : '';
+    $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+    $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
+    return "$scheme$user$pass$host$port$path$query$fragment";
 }

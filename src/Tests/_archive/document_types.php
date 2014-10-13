@@ -1,4 +1,6 @@
 <?php
+use PhpQuery\Dom\DOMDocumentWrapper;
+
 /**
  * Charset and document types test.
  *
@@ -9,7 +11,7 @@
  * - document fragments tests (with all 4 charset scenarios)
  *
  */
-class phpQuery {
+class PhpQuery {
 	static $defaultDocumentID;
 	static $debug = 0;
 	static $documents = array();
@@ -19,8 +21,8 @@ class phpQuery {
 			print var_dump($text);
 	}
 }
-require_once('../phpQuery/DOMDocumentWrapper.php');
-phpQuery::$debug = 2;
+require_once(__DIR__ . '/../../Dom/DOMDocumentWrapper.php');
+PhpQuery::$debug = 2;
 
 /* ENCODINGS */
 //print '<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-2">';

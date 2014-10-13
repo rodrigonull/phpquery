@@ -1,6 +1,8 @@
 <?php
 namespace PhpQuery\Tests;
-use PhpQuery\PhpQuery as phpQuery;
+use PhpQuery\PhpQuery;
+use PhpQuery\PhpQueryObject;
+
 PhpQuery::use_function(__NAMESPACE__);
 
 class BasicTest extends \PHPUnit_Framework_TestCase {
@@ -8,13 +10,13 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
     // TODO change filename
     return array(
       array(
-        phpQuery::newDocumentFile(__DIR__ . '/test.html')
+        PhpQuery::newDocumentFile(__DIR__ . '/test.html')
       )
     );
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -28,7 +30,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -42,7 +44,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -65,7 +67,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
    */
   function testMultiInsert() {
     // Multi-insert
-    $pq = phpQuery::newDocument('<li><span class="field1"></span><span class="field1"></span></li>')->find('.field1')->php('longlongtest');
+    $pq = PhpQuery::newDocument('<li><span class="field1"></span><span class="field1"></span></li>')->find('.field1')->php('longlongtest');
     $validResult = '<li><span class="field1"><php>longlongtest</php></span><span class="field1"><php>longlongtest</php></span></li>';
     similar_text($pq->htmlOuter(), $validResult, $similarity);
 
@@ -74,7 +76,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -86,7 +88,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -108,7 +110,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -121,7 +123,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
@@ -152,7 +154,7 @@ class BasicTest extends \PHPUnit_Framework_TestCase {
 <p class="after">paragraph after UL</p>
     </div>
 EOF;
-    $expected_pq = phpQuery::newDocumentHTML($testResult);
+    $expected_pq = PhpQuery::newDocumentHTML($testResult);
     $rows = array(
       array(
         'title' => 'News 1 title',
@@ -185,17 +187,17 @@ EOF;
   }
 
   /**
-   * @param phpQueryObject $pq
+   * @param PhpQueryObject $pq
    * @dataProvider provider
    * @return void
    */
   public function testCssParser() {
-    phpQuery::$enableCssShorthand = FALSE;
+    PhpQuery::$enableCssShorthand = FALSE;
 
     $expected_html = '<div style="color:red;display:none;margin:20px;padding:10px"><span>Hello World!</span></div>';
-    $expected_pq = phpQuery::newDocumentHTML($expected_html);
+    $expected_pq = PhpQuery::newDocumentHTML($expected_html);
 
-    $test_pq = phpQuery::newDocumentHTML('<div style="margin:10px; padding:10px">');
+    $test_pq = PhpQuery::newDocumentHTML('<div style="margin:10px; padding:10px">');
     $test = pq('div');
     $test->append('<span>Hello World!</span>');
     $test->hide();
